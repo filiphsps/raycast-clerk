@@ -4,20 +4,51 @@ import { AppForm } from "./components/app-form";
 import { AuthActions } from "./components/auth-guard";
 import { useApps } from "./lib/hooks";
 import { getActiveAppId, removeApp, setActiveAppId } from "./lib/storage";
+import { clientFor } from "./lib/clerk";
 import type { ClerkApp } from "./types";
+
+type Stats = { users: number; orgs: number; error: boolean };
 
 export default function ManageApps() {
   const { data: apps = [], isLoading, revalidate } = useApps();
   const { data: activeId, revalidate: revalidateActive } = useCachedPromise(getActiveAppId, []);
 
+  // Counts load asynchronously so the management list stays instant (LocalStorage only).
+  const {
+    data: stats = {},
+    isLoading: statsLoading,
+    revalidate: revalidateStats,
+  } = useCachedPromise(
+    async (list: ClerkApp[]): Promise<Record<string, Stats>> => {
+      const entries = await Promise.all(
+        list.map(async (app) => {
+          try {
+            const [u, o] = await Promise.all([
+              clientFor(app).users.getUserList({ limit: 1 }),
+              clientFor(app).organizations.getOrganizationList({ limit: 1 }),
+            ]);
+            return [app.id, { users: u.totalCount, orgs: o.totalCount, error: false }] as const;
+          } catch {
+            return [app.id, { users: 0, orgs: 0, error: true }] as const;
+          }
+        }),
+      );
+      return Object.fromEntries(entries);
+    },
+    [apps],
+    { execute: apps.length > 0, initialData: {} },
+  );
+
   function refresh() {
     revalidate();
     revalidateActive();
+    revalidateStats();
   }
 
   async function activate(app: ClerkApp) {
     await setActiveAppId(app.id);
-    refresh();
+    revalidate();
+    revalidateActive();
     await showToast({ style: Toast.Style.Success, title: `Active app: ${app.name}` });
   }
 
@@ -33,8 +64,15 @@ export default function ManageApps() {
     await showToast({ style: Toast.Style.Success, title: `Removed ${app.name}` });
   }
 
+  function statAccessories(app: ClerkApp): List.Item.Accessory[] {
+    const s = stats[app.id];
+    if (!s) return [];
+    if (s.error) return [{ tag: { value: "Key error", color: Color.Red } }];
+    return [{ text: `${s.users} users` }, { text: `${s.orgs} orgs` }];
+  }
+
   return (
-    <List isLoading={isLoading}>
+    <List isLoading={isLoading || statsLoading}>
       {apps.length === 0 ? (
         <List.EmptyView
           icon={Icon.Key}
@@ -50,6 +88,7 @@ export default function ManageApps() {
             title={app.name}
             accessories={[
               { tag: app.instanceType },
+              ...statAccessories(app),
               ...(app.id === activeId ? [{ tag: { value: "Active", color: Color.Green } }] : []),
             ]}
             actions={
@@ -68,6 +107,12 @@ export default function ManageApps() {
                   style={Action.Style.Destructive}
                   shortcut={{ modifiers: ["ctrl"], key: "x" }}
                   onAction={() => remove(app)}
+                />
+                <Action
+                  title="Refresh Stats"
+                  icon={Icon.ArrowClockwise}
+                  shortcut={{ modifiers: ["cmd"], key: "r" }}
+                  onAction={() => revalidateStats()}
                 />
               </ActionPanel>
             }

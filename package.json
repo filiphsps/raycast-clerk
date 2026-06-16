@@ -21,12 +21,6 @@
       "mode": "view"
     },
     {
-      "name": "switch-app",
-      "title": "Switch Active App",
-      "description": "Switch which configured Clerk instance is active",
-      "mode": "view"
-    },
-    {
       "name": "search-users",
       "title": "Search Users",
       "description": "Search and manage users in the active Clerk instance",
@@ -54,12 +48,6 @@
       "name": "access-lists",
       "title": "Access Lists",
       "description": "Manage allowlist and blocklist identifiers in the active Clerk instance",
-      "mode": "view"
-    },
-    {
-      "name": "overview",
-      "title": "Overview",
-      "description": "User and organization counts across configured Clerk instances",
       "mode": "view"
     }
   ],
