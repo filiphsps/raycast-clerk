@@ -15,18 +15,8 @@ import { ImpersonationTokenForm } from "./components/impersonation-token-form";
 import { clientFor, dashboardUserUrl } from "./lib/clerk";
 import { getPageParams, computeHasMore } from "./lib/pagination";
 import { showClerkError } from "./lib/errors";
+import { primaryEmail, fullName } from "./lib/user";
 import type { ClerkApp } from "./types";
-
-function primaryEmail(user: User): string {
-  return (
-    user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ??
-    user.emailAddresses[0]?.emailAddress ??
-    "—"
-  );
-}
-function fullName(user: User): string {
-  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || primaryEmail(user);
-}
 
 function UsersList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["searchBarAccessory"] }) {
   const [searchText, setSearchText] = useState("");

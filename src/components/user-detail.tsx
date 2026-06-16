@@ -1,25 +1,13 @@
 import { Action, ActionPanel, Color, Detail, Icon, List } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import type { User } from "@clerk/backend";
 import type { ClerkApp } from "../types";
 import { clientFor, dashboardUserUrl } from "../lib/clerk";
 import { showClerkError } from "../lib/errors";
+import { primaryEmail, fullName } from "../lib/user";
 import { EditUserForm } from "./user-edit-form";
 import { AddEmailForm } from "./add-email-form";
 import { SignInTokenForm } from "./sign-in-token-form";
 import { ImpersonationTokenForm } from "./impersonation-token-form";
-
-function primaryEmail(user: User): string {
-  return (
-    user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ??
-    user.emailAddresses[0]?.emailAddress ??
-    "—"
-  );
-}
-
-function fullName(user: User): string {
-  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || primaryEmail(user);
-}
 
 function fmtDate(ms: number | null): string {
   return ms ? new Date(ms).toLocaleString() : "—";
