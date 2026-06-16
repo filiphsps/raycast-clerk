@@ -38,7 +38,15 @@ export function ImpersonationTokenForm({ app, userId }: { app: ClerkApp; userId:
       });
       toast.style = Toast.Style.Success;
       toast.title = "Impersonation token created";
-      push(<TokenResultDetail title="Impersonation Token" url={t.url ?? ""} token={t.token ?? ""} status={t.status} />);
+      push(
+        <TokenResultDetail
+          title="Impersonation Token"
+          urlLabel="Impersonation URL"
+          url={t.url ?? ""}
+          token={t.token ?? ""}
+          status={t.status}
+        />,
+      );
     } catch (error) {
       toast.hide();
       await showClerkError(error);

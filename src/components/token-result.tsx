@@ -5,16 +5,18 @@ export function TokenResultDetail({
   url,
   token,
   status,
+  urlLabel = "URL",
 }: {
   title: string;
   url: string;
   token: string;
   status: string;
+  urlLabel?: string;
 }) {
   const markdown = [
     `# ${title}`,
     "",
-    "## Sign-in URL",
+    `## ${urlLabel}`,
     url ? "```\n" + url + "\n```" : "—",
     "",
     "## Token",
@@ -32,7 +34,7 @@ export function TokenResultDetail({
       }
       actions={
         <ActionPanel>
-          {url !== "" && <Action.CopyToClipboard title="Copy Sign-In URL" content={url} />}
+          {url !== "" && <Action.CopyToClipboard title={`Copy ${urlLabel}`} content={url} />}
           {token !== "" && <Action.CopyToClipboard title="Copy Token" content={token} />}
           {url !== "" && <Action.OpenInBrowser title="Open URL in Browser" icon={Icon.Globe} url={url} />}
         </ActionPanel>

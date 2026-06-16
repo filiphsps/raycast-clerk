@@ -25,7 +25,15 @@ export function SignInTokenForm({ app, userId }: { app: ClerkApp; userId: string
       const t = await clientFor(app).signInTokens.createSignInToken({ userId, expiresInSeconds: expires });
       toast.style = Toast.Style.Success;
       toast.title = "Sign-in token created";
-      push(<TokenResultDetail title="Sign-in Token" url={t.url} token={t.token} status={t.status} />);
+      push(
+        <TokenResultDetail
+          title="Sign-in Token"
+          urlLabel="Sign-In URL"
+          url={t.url}
+          token={t.token}
+          status={t.status}
+        />,
+      );
     } catch (error) {
       toast.hide();
       await showClerkError(error);

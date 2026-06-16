@@ -70,6 +70,12 @@ function UsersList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["
     );
   }
   async function revokeSessions(user: User) {
+    const ok = await confirmAlert({
+      title: `Revoke all sessions for ${fullName(user)}?`,
+      message: "This signs the user out of every active session.",
+      primaryAction: { title: "Revoke", style: Alert.ActionStyle.Destructive },
+    });
+    if (!ok) return;
     await runMutation(
       (async () => {
         const sessions = await clientFor(app).sessions.getSessionList({ userId: user.id, status: "active" });
