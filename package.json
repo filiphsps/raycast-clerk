@@ -49,6 +49,12 @@
       "title": "Invitations",
       "description": "View and manage invitations in the active Clerk instance",
       "mode": "view"
+    },
+    {
+      "name": "access-lists",
+      "title": "Access Lists",
+      "description": "Manage allowlist and blocklist identifiers in the active Clerk instance",
+      "mode": "view"
     }
   ],
   "dependencies": {
