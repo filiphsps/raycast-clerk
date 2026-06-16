@@ -33,14 +33,16 @@ export default function MenuBar() {
     revalidate: revalidateTitle,
   } = useCachedPromise(getMenuBarTitleMode, []);
 
-  // Running the command from Raycast's root search toggles enabled/disabled.
+  // Explicitly running the command (from Raycast root search) re-enables it.
+  // Disabling is done from the menu's "Disable Menu Bar" item. We can't make a
+  // true toggle here: opening the dropdown re-runs the command with the same
+  // UserInitiated launch type as a root-search run, so running always enables.
   const [hidden, setHidden] = useState<boolean | undefined>(undefined);
   useEffect(() => {
     (async () => {
       if (environment.launchType === LaunchType.UserInitiated) {
-        const next = !(await getMenuBarHidden());
-        await setMenuBarHidden(next);
-        setHidden(next);
+        await setMenuBarHidden(false);
+        setHidden(false);
       } else {
         setHidden(await getMenuBarHidden());
       }
