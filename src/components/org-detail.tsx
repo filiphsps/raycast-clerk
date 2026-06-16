@@ -150,14 +150,17 @@ export function OrgDetail({
     }
   }
 
+  const editOrgAction = (
+    <Action.Push
+      title="Edit Organization"
+      icon={Icon.Pencil}
+      shortcut={{ modifiers: ["cmd"], key: "e" }}
+      target={<EditOrgForm app={app} organizationId={organizationId} onSaved={() => revalidateOrg()} />}
+    />
+  );
+
   const orgActions = (
     <ActionPanel.Section title="Organization">
-      <Action.Push
-        title="Edit Organization"
-        icon={Icon.Pencil}
-        shortcut={{ modifiers: ["cmd"], key: "e" }}
-        target={<EditOrgForm app={app} organizationId={organizationId} onSaved={() => revalidateOrg()} />}
-      />
       <Action.Push
         title="View Invitations"
         icon={Icon.Envelope}
@@ -185,7 +188,16 @@ export function OrgDetail({
       navigationTitle={`Organization · ${orgName}`}
       searchBarPlaceholder="Search members…"
     >
-      <List.EmptyView icon={Icon.PersonLines} title="No members" actions={<ActionPanel>{orgActions}</ActionPanel>} />
+      <List.EmptyView
+        icon={Icon.PersonLines}
+        title="No members"
+        actions={
+          <ActionPanel>
+            {editOrgAction}
+            {orgActions}
+          </ActionPanel>
+        }
+      />
       {(data ?? []).map((m) => {
         const userId = m.publicUserData?.userId;
         return (
@@ -226,6 +238,7 @@ export function OrgDetail({
                   style={Action.Style.Destructive}
                   onAction={() => removeMember(m)}
                 />
+                {editOrgAction}
                 {orgActions}
               </ActionPanel>
             }
