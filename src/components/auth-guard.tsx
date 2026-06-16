@@ -2,13 +2,7 @@ import { Action, ActionPanel, Clipboard, Icon, List, Toast, showToast } from "@r
 import { randomUUID } from "node:crypto";
 import { useEffect, useState } from "react";
 import { AppForm } from "./app-form";
-import {
-  DASHBOARD_API_KEYS_URL,
-  clientFor,
-  defaultAppName,
-  instanceTypeFromKey,
-  isClerkSecretKey,
-} from "../lib/clerk";
+import { DASHBOARD_API_KEYS_URL, clientFor, defaultAppName, instanceTypeFromKey, isClerkSecretKey } from "../lib/clerk";
 import { addApp } from "../lib/storage";
 import { showClerkError } from "../lib/errors";
 
@@ -49,14 +43,8 @@ export function AuthActions(props: { onChanged: () => void }) {
 
   return (
     <ActionPanel>
-      {clipboardHasKey && (
-        <Action title="Add App from Clipboard" icon={Icon.Clipboard} onAction={addFromClipboard} />
-      )}
-      <Action.Push
-        title="Add App Manually…"
-        icon={Icon.Plus}
-        target={<AppForm onSaved={props.onChanged} />}
-      />
+      {clipboardHasKey && <Action title="Add App from Clipboard" icon={Icon.Clipboard} onAction={addFromClipboard} />}
+      <Action.Push title="Add App Manually…" icon={Icon.Plus} target={<AppForm onSaved={props.onChanged} />} />
       <Action.OpenInBrowser title="Open Clerk Dashboard → API Keys" url={DASHBOARD_API_KEYS_URL} />
     </ActionPanel>
   );

@@ -2,13 +2,7 @@ import { Action, ActionPanel, Clipboard, Form, Toast, showToast, useNavigation }
 import { randomUUID } from "node:crypto";
 import { useEffect, useState } from "react";
 import type { ClerkApp } from "../types";
-import {
-  DASHBOARD_API_KEYS_URL,
-  clientFor,
-  defaultAppName,
-  instanceTypeFromKey,
-  isClerkSecretKey,
-} from "../lib/clerk";
+import { DASHBOARD_API_KEYS_URL, clientFor, defaultAppName, instanceTypeFromKey, isClerkSecretKey } from "../lib/clerk";
 import { addApp, updateApp } from "../lib/storage";
 import { showClerkError } from "../lib/errors";
 
@@ -29,8 +23,7 @@ export function AppForm(props: { app?: ClerkApp; onSaved?: () => void }) {
         setName((current) => current || defaultAppName(text));
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [editing]);
 
   async function pasteFromClipboard() {
     const text = (await Clipboard.readText()) ?? "";

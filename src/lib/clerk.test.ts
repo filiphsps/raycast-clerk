@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  isClerkSecretKey,
-  instanceTypeFromKey,
-  defaultAppName,
-  DASHBOARD_API_KEYS_URL,
-} from "./clerk";
+import { isClerkSecretKey, instanceTypeFromKey, defaultAppName, DASHBOARD_API_KEYS_URL } from "./clerk";
 
 describe("isClerkSecretKey", () => {
   it("accepts test and live keys, trimming whitespace", () => {

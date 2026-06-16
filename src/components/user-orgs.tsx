@@ -29,9 +29,7 @@ export function UserOrgs(props: { app: ClerkApp; userId: string; userLabel: stri
               <Action.Push
                 title="View Members"
                 icon={Icon.PersonLines}
-                target={
-                  <OrgMembers app={props.app} organizationId={m.organization.id} orgName={m.organization.name} />
-                }
+                target={<OrgMembers app={props.app} organizationId={m.organization.id} orgName={m.organization.name} />}
               />
             </ActionPanel>
           }

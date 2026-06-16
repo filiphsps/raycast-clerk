@@ -15,12 +15,6 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "view-users",
-      "title": "View Users",
-      "description": "",
-      "mode": "view"
-    },
-    {
       "name": "manage-apps",
       "title": "Manage Apps",
       "description": "Add, edit, remove, and activate Clerk instances",
