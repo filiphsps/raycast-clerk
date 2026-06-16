@@ -37,6 +37,12 @@
       "title": "Search Users",
       "description": "Search and manage users in the active Clerk instance",
       "mode": "view"
+    },
+    {
+      "name": "search-organizations",
+      "title": "Search Organizations",
+      "description": "Search organizations and manage members in the active Clerk instance",
+      "mode": "view"
     }
   ],
   "dependencies": {
