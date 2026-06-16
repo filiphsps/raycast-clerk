@@ -2,7 +2,7 @@ import { Action, ActionPanel, Color, Detail, Icon, List } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import type { User } from "@clerk/backend";
 import type { ClerkApp } from "../types";
-import { clientFor } from "../lib/clerk";
+import { clientFor, dashboardUserUrl } from "../lib/clerk";
 import { showClerkError } from "../lib/errors";
 
 function primaryEmail(user: User): string {
@@ -102,6 +102,7 @@ export function UserDetail(props: { app: ClerkApp; userId: string }) {
               icon={Icon.Globe}
               target={<UserSessions app={props.app} userId={user.id} />}
             />
+            <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardUserUrl(user.id)} />
             <Action.CopyToClipboard title="Copy User ID" content={user.id} />
             <Action.CopyToClipboard title="Copy Email" content={primaryEmail(user)} />
           </ActionPanel>
