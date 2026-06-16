@@ -4,6 +4,8 @@ import type { User } from "@clerk/backend";
 import type { ClerkApp } from "../types";
 import { clientFor, dashboardUserUrl } from "../lib/clerk";
 import { showClerkError } from "../lib/errors";
+import { EditUserForm } from "./user-edit-form";
+import { AddEmailForm } from "./add-email-form";
 
 function primaryEmail(user: User): string {
   return (
@@ -60,11 +62,13 @@ export function UserSessions(props: { app: ClerkApp; userId: string }) {
 }
 
 export function UserDetail(props: { app: ClerkApp; userId: string }) {
-  const { data: user, isLoading } = useCachedPromise(
-    async (userId: string) => clientFor(props.app).users.getUser(userId),
-    [props.userId],
-    { onError: showClerkError },
-  );
+  const {
+    data: user,
+    isLoading,
+    revalidate,
+  } = useCachedPromise(async (userId: string) => clientFor(props.app).users.getUser(userId), [props.userId], {
+    onError: showClerkError,
+  });
 
   const md = user ? `# ${fullName(user)}\n\n${user.imageUrl ? `![avatar](${user.imageUrl})` : ""}` : "Loading…";
 
@@ -97,6 +101,16 @@ export function UserDetail(props: { app: ClerkApp; userId: string }) {
       actions={
         user && (
           <ActionPanel>
+            <Action.Push
+              title="Edit User"
+              icon={Icon.Pencil}
+              target={<EditUserForm app={props.app} user={user} onSaved={revalidate} />}
+            />
+            <Action.Push
+              title="Add Email Address"
+              icon={Icon.Envelope}
+              target={<AddEmailForm app={props.app} userId={user.id} onAdded={revalidate} />}
+            />
             <Action.Push
               title="View Sessions"
               icon={Icon.Globe}

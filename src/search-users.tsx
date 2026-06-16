@@ -7,6 +7,7 @@ import { getActiveAppId, setActiveAppId } from "./lib/storage";
 import { AuthGuard } from "./components/auth-guard";
 import { AppDropdown } from "./components/app-dropdown";
 import { CreateUserForm } from "./components/user-create-form";
+import { EditUserForm } from "./components/user-edit-form";
 import { UserDetail } from "./components/user-detail";
 import { UserOrgs } from "./components/user-orgs";
 import { clientFor, dashboardUserUrl } from "./lib/clerk";
@@ -118,6 +119,12 @@ function UsersList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["
                 icon={Icon.AddPerson}
                 shortcut={{ modifiers: ["cmd"], key: "n" }}
                 target={<CreateUserForm app={app} onSaved={() => mutate()} />}
+              />
+              <Action.Push
+                title="Edit User"
+                icon={Icon.Pencil}
+                shortcut={{ modifiers: ["cmd"], key: "e" }}
+                target={<EditUserForm app={app} user={user} onSaved={() => mutate()} />}
               />
               <Action.Push
                 title="View Organizations"
