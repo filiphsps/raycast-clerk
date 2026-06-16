@@ -52,3 +52,9 @@ export function FieldDetailList(props: {
 export function hasEntries(obj: unknown): boolean {
   return !!obj && typeof obj === "object" && Object.keys(obj as Record<string, unknown>).length > 0;
 }
+
+/** Clerk image URLs accept sizing params; cap the size so the avatar/logo never overflows the pane. */
+export function sizedImage(url: string, size = 160): string {
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}width=${size}&height=${size}&fit=crop`;
+}

@@ -8,4 +8,4 @@
 - Manage invitations: create and revoke
 - Manage access lists: allowlist and blocklist identifiers
 - Generate sign-in and impersonation tokens
-- Switch the active instance from a command or the menu bar
+- Switch the active instance from any command's search-bar dropdown

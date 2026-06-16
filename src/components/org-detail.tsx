@@ -21,7 +21,7 @@ import { getPageParams, computeHasMore } from "../lib/pagination";
 import { PAGE_SIZE } from "../lib/hooks";
 import { showClerkError } from "../lib/errors";
 import { UserDetail } from "./user-detail";
-import { FieldDetailList, hasEntries, type DetailField } from "./field-detail";
+import { FieldDetailList, hasEntries, sizedImage, type DetailField } from "./field-detail";
 
 function memberLabel(m: OrganizationMembership): string {
   const d = m.publicUserData;
@@ -183,13 +183,14 @@ export function OrgDetail({
     isLoading,
     revalidate: revalidateOrg,
   } = useCachedPromise(
-    (id: string) => clientFor(app).organizations.getOrganization({ organizationId: id }),
+    (id: string) => clientFor(app).organizations.getOrganization({ organizationId: id, includeMembersCount: true }),
     [organizationId],
     { onError: showClerkError },
   );
 
   const fields: DetailField[] = [];
   if (org) {
+    fields.push({ id: "name", label: "Name", value: org.name, icon: Icon.Building });
     fields.push({ id: "id", label: "Org ID", value: org.id, icon: Icon.Fingerprint });
     if (org.slug) fields.push({ id: "slug", label: "Slug", value: org.slug, icon: Icon.Link });
     if (hasEntries(org.publicMetadata))
@@ -208,11 +209,10 @@ export function OrgDetail({
       });
   }
 
-  const markdown = org ? `# ${org.name}\n\n${org.imageUrl ? `![logo](${org.imageUrl})` : ""}` : "Loading…";
+  const markdown = org ? `# ${org.name}\n\n${org.imageUrl ? `![logo](${sizedImage(org.imageUrl)})` : ""}` : "Loading…";
 
   const metadata = org && (
     <>
-      <List.Item.Detail.Metadata.Label title="Name" text={org.name} />
       <List.Item.Detail.Metadata.Label
         title="Members"
         text={typeof org.membersCount === "number" ? String(org.membersCount) : "—"}

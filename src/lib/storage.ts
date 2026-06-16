@@ -53,24 +53,3 @@ export async function getActiveApp(): Promise<ClerkApp | undefined> {
   if (!id) return undefined;
   return (await getApps()).find((a) => a.id === id);
 }
-
-const MENUBAR_HIDDEN_KEY = "menubar.hidden";
-const MENUBAR_TITLE_MODE_KEY = "menubar.titleMode";
-
-export type MenuBarTitleMode = "full" | "icon";
-
-export async function getMenuBarHidden(): Promise<boolean> {
-  return (await LocalStorage.getItem<string>(MENUBAR_HIDDEN_KEY)) === "true";
-}
-
-export async function setMenuBarHidden(hidden: boolean): Promise<void> {
-  await LocalStorage.setItem(MENUBAR_HIDDEN_KEY, hidden ? "true" : "false");
-}
-
-export async function getMenuBarTitleMode(): Promise<MenuBarTitleMode> {
-  return (await LocalStorage.getItem<string>(MENUBAR_TITLE_MODE_KEY)) === "icon" ? "icon" : "full";
-}
-
-export async function setMenuBarTitleMode(mode: MenuBarTitleMode): Promise<void> {
-  await LocalStorage.setItem(MENUBAR_TITLE_MODE_KEY, mode);
-}

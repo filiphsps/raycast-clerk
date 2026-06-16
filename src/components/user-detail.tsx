@@ -4,7 +4,7 @@ import type { ClerkApp } from "../types";
 import { clientFor, dashboardUserUrl } from "../lib/clerk";
 import { showClerkError } from "../lib/errors";
 import { primaryEmail, fullName } from "../lib/user";
-import { FieldDetailList, hasEntries, type DetailField } from "./field-detail";
+import { FieldDetailList, hasEntries, sizedImage, type DetailField } from "./field-detail";
 import { EditUserForm } from "./user-edit-form";
 import { AddEmailForm } from "./add-email-form";
 import { SignInTokenForm } from "./sign-in-token-form";
@@ -64,6 +64,7 @@ export function UserDetail(props: { app: ClerkApp; userId: string }) {
 
   const fields: DetailField[] = [];
   if (user) {
+    fields.push({ id: "name", label: "Name", value: fullName(user), icon: Icon.Person });
     fields.push({ id: "id", label: "User ID", value: user.id, icon: Icon.Fingerprint });
     const email = primaryEmail(user);
     if (email !== "—") fields.push({ id: "email", label: "Email", value: email, icon: Icon.Envelope });
@@ -84,11 +85,12 @@ export function UserDetail(props: { app: ClerkApp; userId: string }) {
       });
   }
 
-  const markdown = user ? `# ${fullName(user)}\n\n${user.imageUrl ? `![avatar](${user.imageUrl})` : ""}` : "Loading…";
+  const markdown = user
+    ? `# ${fullName(user)}\n\n${user.imageUrl ? `![avatar](${sizedImage(user.imageUrl)})` : ""}`
+    : "Loading…";
 
   const metadata = user && (
     <>
-      <List.Item.Detail.Metadata.Label title="Name" text={fullName(user)} />
       <List.Item.Detail.Metadata.TagList title="Status">
         <List.Item.Detail.Metadata.TagList.Item
           text={user.banned ? "Banned" : "Active"}

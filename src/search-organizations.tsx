@@ -80,6 +80,7 @@ function OrgsList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["s
       const { limit, offset } = getPageParams(options.page, PAGE_SIZE);
       const res = await clientFor(app).organizations.getOrganizationList({
         query: query || undefined,
+        includeMembersCount: true,
         limit,
         offset,
       });
