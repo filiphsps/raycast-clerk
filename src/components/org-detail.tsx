@@ -209,7 +209,7 @@ export function OrgDetail({
       });
   }
 
-  const markdown = org ? `# ${org.name}\n\n${org.imageUrl ? `![logo](${sizedImage(org.imageUrl)})` : ""}` : "Loading…";
+  const markdown = org ? (org.imageUrl ? `![logo](${sizedImage(org.imageUrl)})` : "") : "Loading…";
 
   const metadata = org && (
     <>

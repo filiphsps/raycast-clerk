@@ -85,9 +85,7 @@ export function UserDetail(props: { app: ClerkApp; userId: string }) {
       });
   }
 
-  const markdown = user
-    ? `# ${fullName(user)}\n\n${user.imageUrl ? `![avatar](${sizedImage(user.imageUrl)})` : ""}`
-    : "Loading…";
+  const markdown = user ? (user.imageUrl ? `![avatar](${sizedImage(user.imageUrl)})` : "") : "Loading…";
 
   const metadata = user && (
     <>
