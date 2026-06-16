@@ -53,8 +53,12 @@ export function hasEntries(obj: unknown): boolean {
   return !!obj && typeof obj === "object" && Object.keys(obj as Record<string, unknown>).length > 0;
 }
 
-/** Clerk image URLs accept sizing params; cap the size so the avatar/logo never overflows the pane. */
-export function sizedImage(url: string, size = 160): string {
+/**
+ * Cap how large Raycast renders a markdown image. Raycast honors the
+ * `raycast-width` / `raycast-height` query params, so the avatar/logo stays
+ * small and the detail pane never needs to scroll.
+ */
+export function sizedImage(url: string, size = 128): string {
   const sep = url.includes("?") ? "&" : "?";
-  return `${url}${sep}width=${size}&height=${size}&fit=crop`;
+  return `${url}${sep}raycast-width=${size}&raycast-height=${size}`;
 }
