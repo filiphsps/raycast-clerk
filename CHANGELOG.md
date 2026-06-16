@@ -1,6 +1,6 @@
 # Clerk Changelog
 
-## [Initial Version] - {PR_MERGE_DATE}
+## [Initial Release] - {PR_MERGE_DATE}
 
 - Manage multiple Clerk instances with a clipboard-driven auth flow
 - Search users: details, sessions, ban/unban, revoke sessions, delete, view organizations

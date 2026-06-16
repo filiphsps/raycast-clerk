@@ -1,5 +1,6 @@
 import { LocalStorage } from "@raycast/api";
 import type { ClerkApp } from "../types";
+import { pruneClientCache } from "./clerk";
 
 const APPS_KEY = "clerk.apps";
 const ACTIVE_KEY = "clerk.activeAppId";
@@ -16,6 +17,7 @@ export async function getApps(): Promise<ClerkApp[]> {
 
 export async function saveApps(apps: ClerkApp[]): Promise<void> {
   await LocalStorage.setItem(APPS_KEY, JSON.stringify(apps));
+  pruneClientCache(apps.map((a) => a.secretKey));
 }
 
 export async function getActiveAppId(): Promise<string | undefined> {

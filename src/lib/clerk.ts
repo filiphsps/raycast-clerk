@@ -38,3 +38,14 @@ export function clientFor(app: ClerkApp): ClerkClient {
   clientCache.set(app.secretKey, client);
   return client;
 }
+
+/**
+ * Drop cached clients whose secret key is no longer in use, so rotated or
+ * removed keys don't linger in memory. Call after persisting app changes.
+ */
+export function pruneClientCache(validKeys: Iterable<string>): void {
+  const keep = new Set(validKeys);
+  for (const key of clientCache.keys()) {
+    if (!keep.has(key)) clientCache.delete(key);
+  }
+}
