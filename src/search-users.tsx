@@ -6,6 +6,7 @@ import { useApps, PAGE_SIZE } from "./lib/hooks";
 import { getActiveAppId, setActiveAppId } from "./lib/storage";
 import { AuthGuard } from "./components/auth-guard";
 import { AppDropdown } from "./components/app-dropdown";
+import { CreateUserForm } from "./components/user-create-form";
 import { UserDetail } from "./components/user-detail";
 import { UserOrgs } from "./components/user-orgs";
 import { clientFor, dashboardUserUrl } from "./lib/clerk";
@@ -111,6 +112,12 @@ function UsersList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["
                 title="View Details"
                 icon={Icon.Sidebar}
                 target={<UserDetail app={app} userId={user.id} />}
+              />
+              <Action.Push
+                title="Create User"
+                icon={Icon.AddPerson}
+                shortcut={{ modifiers: ["cmd"], key: "n" }}
+                target={<CreateUserForm app={app} onSaved={() => mutate()} />}
               />
               <Action.Push
                 title="View Organizations"
