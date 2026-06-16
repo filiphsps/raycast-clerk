@@ -14,7 +14,7 @@ import { useCachedPromise } from "@raycast/utils";
 import { useState } from "react";
 import type { OrganizationMembership } from "@clerk/backend";
 import type { ClerkApp } from "../types";
-import { clientFor } from "../lib/clerk";
+import { clientFor, dashboardOrgUrl } from "../lib/clerk";
 import { getPageParams, computeHasMore } from "../lib/pagination";
 import { PAGE_SIZE } from "../lib/hooks";
 import { showClerkError } from "../lib/errors";
@@ -160,6 +160,11 @@ export function OrgMembers(props: { app: ClerkApp; organizationId: string; orgNa
                   icon={Icon.Trash}
                   style={Action.Style.Destructive}
                   onAction={() => removeMember(m)}
+                />
+                <Action.OpenInBrowser
+                  title="Open Organization in Clerk Dashboard"
+                  icon={Icon.Globe}
+                  url={dashboardOrgUrl(props.organizationId)}
                 />
               </ActionPanel>
             }

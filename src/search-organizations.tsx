@@ -11,12 +11,14 @@ import {
   useNavigation,
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Organization } from "@clerk/backend";
-import { useActiveApp, PAGE_SIZE } from "./lib/hooks";
+import { useApps, PAGE_SIZE } from "./lib/hooks";
+import { getActiveAppId, setActiveAppId } from "./lib/storage";
 import { AuthGuard } from "./components/auth-guard";
+import { AppDropdown } from "./components/app-dropdown";
 import { OrgMembers } from "./components/org-members";
-import { clientFor } from "./lib/clerk";
+import { clientFor, dashboardOrgUrl } from "./lib/clerk";
 import { getPageParams, computeHasMore } from "./lib/pagination";
 import { showClerkError } from "./lib/errors";
 import type { ClerkApp } from "./types";
@@ -71,10 +73,10 @@ function CreateOrgForm({ app, onDone }: { app: ClerkApp; onDone: () => void }) {
   );
 }
 
-function OrgsList({ app }: { app: ClerkApp }) {
+function OrgsList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["searchBarAccessory"] }) {
   const [searchText, setSearchText] = useState("");
   const { data, isLoading, pagination, mutate } = useCachedPromise(
-    (query: string) => async (options: { page: number }) => {
+    (appId: string, query: string) => async (options: { page: number }) => {
       const { limit, offset } = getPageParams(options.page, PAGE_SIZE);
       const res = await clientFor(app).organizations.getOrganizationList({
         query: query || undefined,
@@ -83,7 +85,7 @@ function OrgsList({ app }: { app: ClerkApp }) {
       });
       return { data: res.data, hasMore: computeHasMore(offset, res.data.length, res.totalCount) };
     },
-    [searchText],
+    [app.id, searchText],
     { onError: showClerkError },
   );
 
@@ -114,6 +116,7 @@ function OrgsList({ app }: { app: ClerkApp }) {
       onSearchTextChange={setSearchText}
       throttle
       searchBarPlaceholder="Search organizations…"
+      searchBarAccessory={accessory}
     >
       {(data ?? []).map((org) => (
         <List.Item
@@ -145,6 +148,7 @@ function OrgsList({ app }: { app: ClerkApp }) {
                 shortcut={{ modifiers: ["ctrl"], key: "x" }}
                 onAction={() => del(org)}
               />
+              <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardOrgUrl(org.id)} />
               <Action.CopyToClipboard title="Copy Org ID" content={org.id} />
               {org.slug && <Action.CopyToClipboard title="Copy Slug" content={org.slug} />}
             </ActionPanel>
@@ -156,8 +160,23 @@ function OrgsList({ app }: { app: ClerkApp }) {
 }
 
 export default function SearchOrganizations() {
-  const { data: app, isLoading, revalidate } = useActiveApp();
-  if (isLoading) return <List isLoading />;
-  if (!app) return <AuthGuard onChanged={revalidate} />;
-  return <OrgsList app={app} />;
+  const { data: apps = [], isLoading: appsLoading, revalidate } = useApps();
+  const { data: activeId, isLoading: activeLoading } = useCachedPromise(getActiveAppId, []);
+  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (selectedId === undefined && activeId) setSelectedId(activeId);
+  }, [activeId, selectedId]);
+
+  if (appsLoading || activeLoading) return <List isLoading />;
+  if (apps.length === 0) return <AuthGuard onChanged={revalidate} />;
+
+  const app = apps.find((a) => a.id === selectedId) ?? apps[0];
+
+  function onAppChange(id: string) {
+    setSelectedId(id);
+    setActiveAppId(id);
+  }
+
+  return <OrgsList app={app} accessory={<AppDropdown apps={apps} selectedId={app.id} onChange={onAppChange} />} />;
 }
