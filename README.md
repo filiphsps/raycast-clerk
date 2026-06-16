@@ -7,8 +7,10 @@ Browse and lightly administer Clerk users and organizations across multiple, swi
 - **Manage Apps** — add/edit/remove Clerk instances and pick the active one. Open the Clerk dashboard, copy a secret key, and add it (auto-detected from your clipboard).
 - **Switch Active App** — quickly change which instance is active.
 - **Search Users** — search users, view details and sessions, ban/unban, revoke sessions, delete, view a user's organizations, **create users**, **edit users** (name, username, primary email, public/private metadata), and **add email addresses**.
-- **Search Organizations** — search organizations, view/manage members (change role, remove), create and delete organizations, and **edit organizations** (name, slug, public/private metadata).
+- **Search Organizations** — search organizations, view/manage members (change role, remove), create and delete organizations, **edit organizations** (name, slug, public/private metadata), and manage **organization invitations** (create with a role, revoke).
 - **Clerk Menu Bar** — optional menu-bar item showing the active instance, with quick app switching and command launchers.
+- **Invitations** — list, create (with expiry, redirect URL, and email toggle), and revoke instance invitations.
+- **Access Lists** — manage allowlist and blocklist identifiers (toggle via the search-bar dropdown).
 
 In **Search Users** and **Search Organizations**, when you have more than one instance configured, a dropdown in the top-right of the search bar switches the active instance in place. User and organization rows include **Open in Clerk Dashboard**.
 
