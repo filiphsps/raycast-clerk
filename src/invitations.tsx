@@ -1,9 +1,9 @@
 import { Action, ActionPanel, Alert, Color, Icon, List, Toast, confirmAlert, showToast } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Invitation } from "@clerk/backend";
-import { useApps, PAGE_SIZE } from "./lib/hooks";
-import { getActiveAppId, setActiveAppId } from "./lib/storage";
+import { PAGE_SIZE } from "./lib/hooks";
+import { useSelectedApp } from "./lib/use-selected-app";
 import { AuthGuard } from "./components/auth-guard";
 import { AppDropdown } from "./components/app-dropdown";
 import { InvitationCreateForm } from "./components/invitation-create-form";
@@ -61,6 +61,20 @@ function InvitationsList({ app, accessory }: { app: ClerkApp; accessory?: List.P
       searchBarPlaceholder="Search invitations…"
       searchBarAccessory={accessory}
     >
+      <List.EmptyView
+        icon={Icon.Envelope}
+        title="No invitations yet"
+        description="Create an invitation to invite someone to this app."
+        actions={
+          <ActionPanel>
+            <Action.Push
+              title="Create Invitation"
+              icon={Icon.Plus}
+              target={<InvitationCreateForm app={app} onSaved={() => mutate()} />}
+            />
+          </ActionPanel>
+        }
+      />
       {(data ?? []).map((inv) => (
         <List.Item
           key={inv.id}
@@ -98,25 +112,15 @@ function InvitationsList({ app, accessory }: { app: ClerkApp; accessory?: List.P
 }
 
 export default function Invitations() {
-  const { data: apps = [], isLoading: appsLoading, revalidate } = useApps();
-  const { data: activeId, isLoading: activeLoading } = useCachedPromise(getActiveAppId, []);
-  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const { apps, app, isLoading, revalidate, activeKey, onAppChange } = useSelectedApp();
 
-  useEffect(() => {
-    if (selectedId === undefined && activeId) setSelectedId(activeId);
-  }, [activeId, selectedId]);
-
-  if (appsLoading || activeLoading) return <List isLoading />;
-  if (apps.length === 0) return <AuthGuard onChanged={revalidate} />;
-
-  const app = apps.find((a) => a.id === selectedId) ?? apps[0];
-
-  function onAppChange(id: string) {
-    setSelectedId(id);
-    setActiveAppId(id);
-  }
+  if (isLoading) return <List isLoading />;
+  if (!app) return <AuthGuard onChanged={revalidate} />;
 
   return (
-    <InvitationsList app={app} accessory={<AppDropdown apps={apps} selectedId={app.id} onChange={onAppChange} />} />
+    <InvitationsList
+      app={app}
+      accessory={<AppDropdown key={activeKey} apps={apps} defaultId={app.id} onChange={onAppChange} />}
+    />
   );
 }

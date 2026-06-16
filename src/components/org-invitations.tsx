@@ -61,6 +61,20 @@ export function OrgInvitations({
       navigationTitle={`Invitations · ${orgName}`}
       searchBarPlaceholder="Filter invitations…"
     >
+      <List.EmptyView
+        icon={Icon.Envelope}
+        title="No invitations yet"
+        description="Create an invitation to add someone to this organization."
+        actions={
+          <ActionPanel>
+            <Action.Push
+              title="Create Invitation"
+              icon={Icon.Plus}
+              target={<OrgInvitationCreateForm app={app} organizationId={organizationId} onSaved={() => mutate()} />}
+            />
+          </ActionPanel>
+        }
+      />
       {(data ?? []).map((inv) => (
         <List.Item
           key={inv.id}

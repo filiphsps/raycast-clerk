@@ -11,13 +11,14 @@ import {
   useNavigation,
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Organization } from "@clerk/backend";
-import { useApps, PAGE_SIZE } from "./lib/hooks";
-import { getActiveAppId, setActiveAppId } from "./lib/storage";
+import { PAGE_SIZE } from "./lib/hooks";
+import { useSelectedApp } from "./lib/use-selected-app";
 import { AuthGuard } from "./components/auth-guard";
 import { AppDropdown } from "./components/app-dropdown";
 import { OrgDetail } from "./components/org-detail";
+import { OrgInvitationCreateForm } from "./components/org-invitation-create-form";
 import { clientFor, dashboardOrgUrl } from "./lib/clerk";
 import { getPageParams, computeHasMore } from "./lib/pagination";
 import { showClerkError } from "./lib/errors";
@@ -137,6 +138,12 @@ function OrgsList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["s
                 target={<OrgDetail app={app} organizationId={org.id} orgName={org.name} />}
               />
               <Action.Push
+                title="Create Invitation"
+                icon={Icon.Envelope}
+                shortcut={{ modifiers: ["cmd"], key: "i" }}
+                target={<OrgInvitationCreateForm app={app} organizationId={org.id} onSaved={() => mutate()} />}
+              />
+              <Action.Push
                 title="Create Organization"
                 icon={Icon.Plus}
                 shortcut={{ modifiers: ["cmd"], key: "n" }}
@@ -161,23 +168,15 @@ function OrgsList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["s
 }
 
 export default function SearchOrganizations() {
-  const { data: apps = [], isLoading: appsLoading, revalidate } = useApps();
-  const { data: activeId, isLoading: activeLoading } = useCachedPromise(getActiveAppId, []);
-  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const { apps, app, isLoading, revalidate, activeKey, onAppChange } = useSelectedApp();
 
-  useEffect(() => {
-    if (selectedId === undefined && activeId) setSelectedId(activeId);
-  }, [activeId, selectedId]);
+  if (isLoading) return <List isLoading />;
+  if (!app) return <AuthGuard onChanged={revalidate} />;
 
-  if (appsLoading || activeLoading) return <List isLoading />;
-  if (apps.length === 0) return <AuthGuard onChanged={revalidate} />;
-
-  const app = apps.find((a) => a.id === selectedId) ?? apps[0];
-
-  function onAppChange(id: string) {
-    setSelectedId(id);
-    setActiveAppId(id);
-  }
-
-  return <OrgsList app={app} accessory={<AppDropdown apps={apps} selectedId={app.id} onChange={onAppChange} />} />;
+  return (
+    <OrgsList
+      app={app}
+      accessory={<AppDropdown key={activeKey} apps={apps} defaultId={app.id} onChange={onAppChange} />}
+    />
+  );
 }

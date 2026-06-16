@@ -86,11 +86,7 @@ export default function ManageApps() {
             key={app.id}
             icon={app.id === activeId ? { source: Icon.CheckCircle, tintColor: Color.Green } : Icon.Circle}
             title={app.name}
-            accessories={[
-              { tag: app.instanceType },
-              ...statAccessories(app),
-              ...(app.id === activeId ? [{ tag: { value: "Active", color: Color.Green } }] : []),
-            ]}
+            accessories={[{ tag: app.instanceType }, ...statAccessories(app)]}
             actions={
               <ActionPanel>
                 <Action title="Set as Active" icon={Icon.Check} onAction={() => activate(app)} />

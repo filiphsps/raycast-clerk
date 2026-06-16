@@ -17,11 +17,13 @@ import type { ClerkApp } from "../types";
 import { clientFor, dashboardOrgUrl } from "../lib/clerk";
 import { EditOrgForm } from "./org-edit-form";
 import { OrgInvitations } from "./org-invitations";
+import { OrgInvitationCreateForm } from "./org-invitation-create-form";
 import { getPageParams, computeHasMore } from "../lib/pagination";
 import { PAGE_SIZE } from "../lib/hooks";
 import { showClerkError } from "../lib/errors";
 import { UserDetail } from "./user-detail";
 import { FieldDetailList, hasEntries, sizedImage, type DetailField } from "./field-detail";
+import { ROLE_PRESETS } from "../lib/roles";
 
 function memberLabel(m: OrganizationMembership): string {
   const d = m.publicUserData;
@@ -65,8 +67,12 @@ function ChangeRoleForm(props: {
       }
     >
       <Form.Dropdown id="preset" title="Common Roles" value={role} onChange={setRole}>
-        <Form.Dropdown.Item value="org:admin" title="org:admin" />
-        <Form.Dropdown.Item value="org:member" title="org:member" />
+        {!ROLE_PRESETS.includes(role) && (
+          <Form.Dropdown.Item value={role} title={role.trim() ? `${role} (custom)` : "Select a role…"} />
+        )}
+        {ROLE_PRESETS.map((preset) => (
+          <Form.Dropdown.Item key={preset} value={preset} title={preset} />
+        ))}
       </Form.Dropdown>
       <Form.TextField id="role" title="Role (custom allowed)" value={role} onChange={setRole} />
     </Form>
@@ -238,6 +244,12 @@ export function OrgDetail({
         title="View Invitations"
         icon={Icon.Envelope}
         target={<OrgInvitations app={app} organizationId={organizationId} orgName={orgName} />}
+      />
+      <Action.Push
+        title="Create Invitation"
+        icon={Icon.Plus}
+        shortcut={{ modifiers: ["cmd"], key: "i" }}
+        target={<OrgInvitationCreateForm app={app} organizationId={organizationId} onSaved={() => revalidateOrg()} />}
       />
       <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardOrgUrl(organizationId)} />
     </ActionPanel.Section>

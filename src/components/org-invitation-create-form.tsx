@@ -4,6 +4,7 @@ import type { ClerkApp } from "../types";
 import { clientFor } from "../lib/clerk";
 import { showClerkError } from "../lib/errors";
 import { parsePositiveIntOrUndefined } from "../lib/parse";
+import { ROLE_PRESETS } from "../lib/roles";
 
 export function OrgInvitationCreateForm({
   app,
@@ -70,8 +71,12 @@ export function OrgInvitationCreateForm({
     >
       <Form.TextField id="email" title="Email" placeholder="user@example.com" value={email} onChange={setEmail} />
       <Form.Dropdown id="rolePreset" title="Common Roles" value={role} onChange={setRole}>
-        <Form.Dropdown.Item value="org:admin" title="org:admin" />
-        <Form.Dropdown.Item value="org:member" title="org:member" />
+        {!ROLE_PRESETS.includes(role) && (
+          <Form.Dropdown.Item value={role} title={role.trim() ? `${role} (custom)` : "Select a role…"} />
+        )}
+        {ROLE_PRESETS.map((preset) => (
+          <Form.Dropdown.Item key={preset} value={preset} title={preset} />
+        ))}
       </Form.Dropdown>
       <Form.TextField id="role" title="Role (custom allowed)" value={role} onChange={setRole} />
       <Form.TextField
