@@ -17,9 +17,7 @@ import { useApps, PAGE_SIZE } from "./lib/hooks";
 import { getActiveAppId, setActiveAppId } from "./lib/storage";
 import { AuthGuard } from "./components/auth-guard";
 import { AppDropdown } from "./components/app-dropdown";
-import { OrgMembers } from "./components/org-members";
-import { OrgInvitations } from "./components/org-invitations";
-import { EditOrgForm } from "./components/org-edit-form";
+import { OrgDetail } from "./components/org-detail";
 import { clientFor, dashboardOrgUrl } from "./lib/clerk";
 import { getPageParams, computeHasMore } from "./lib/pagination";
 import { showClerkError } from "./lib/errors";
@@ -133,20 +131,9 @@ function OrgsList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["s
           actions={
             <ActionPanel>
               <Action.Push
-                title="View Members"
+                title="Open Organization"
                 icon={Icon.PersonLines}
-                target={<OrgMembers app={app} organizationId={org.id} orgName={org.name} />}
-              />
-              <Action.Push
-                title="View Invitations"
-                icon={Icon.Envelope}
-                target={<OrgInvitations app={app} organizationId={org.id} orgName={org.name} />}
-              />
-              <Action.Push
-                title="Edit Organization"
-                icon={Icon.Pencil}
-                shortcut={{ modifiers: ["cmd"], key: "e" }}
-                target={<EditOrgForm app={app} organizationId={org.id} onSaved={() => mutate()} />}
+                target={<OrgDetail app={app} organizationId={org.id} orgName={org.name} />}
               />
               <Action.Push
                 title="Create Organization"

@@ -12,10 +12,11 @@ import {
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { useState } from "react";
-import type { OrganizationMembership } from "@clerk/backend";
+import type { Organization, OrganizationMembership } from "@clerk/backend";
 import type { ClerkApp } from "../types";
 import { clientFor, dashboardOrgUrl } from "../lib/clerk";
 import { EditOrgForm } from "./org-edit-form";
+import { OrgInvitations } from "./org-invitations";
 import { getPageParams, computeHasMore } from "../lib/pagination";
 import { PAGE_SIZE } from "../lib/hooks";
 import { showClerkError } from "../lib/errors";
@@ -71,20 +72,59 @@ function ChangeRoleForm(props: {
   );
 }
 
-export function OrgMembers(props: { app: ClerkApp; organizationId: string; orgName: string }) {
+function OrgInfoPane({ org }: { org?: Organization }) {
+  if (!org) return <List.Item.Detail isLoading />;
+  return (
+    <List.Item.Detail
+      metadata={
+        <List.Item.Detail.Metadata>
+          <List.Item.Detail.Metadata.Label title="Name" text={org.name} />
+          <List.Item.Detail.Metadata.Label title="Slug" text={org.slug ?? "—"} />
+          <List.Item.Detail.Metadata.Label
+            title="Members"
+            text={typeof org.membersCount === "number" ? String(org.membersCount) : "—"}
+          />
+          <List.Item.Detail.Metadata.Label title="Org ID" text={org.id} />
+          <List.Item.Detail.Metadata.Label title="Created" text={new Date(org.createdAt).toLocaleString()} />
+          <List.Item.Detail.Metadata.Separator />
+          <List.Item.Detail.Metadata.Label title="Public Metadata" text={JSON.stringify(org.publicMetadata)} />
+          <List.Item.Detail.Metadata.Label title="Private Metadata" text={JSON.stringify(org.privateMetadata)} />
+        </List.Item.Detail.Metadata>
+      }
+    />
+  );
+}
+
+export function OrgDetail({
+  app,
+  organizationId,
+  orgName,
+}: {
+  app: ClerkApp;
+  organizationId: string;
+  orgName: string;
+}) {
   const [searchText, setSearchText] = useState("");
+  const [showingDetail, setShowingDetail] = useState(true);
+
+  const { data: org, revalidate: revalidateOrg } = useCachedPromise(
+    (id: string) => clientFor(app).organizations.getOrganization({ organizationId: id }),
+    [organizationId],
+    { onError: showClerkError },
+  );
+
   const { data, isLoading, pagination, mutate } = useCachedPromise(
-    (query: string) => async (options: { page: number }) => {
+    (orgId: string, query: string) => async (options: { page: number }) => {
       const { limit, offset } = getPageParams(options.page, PAGE_SIZE);
-      const res = await clientFor(props.app).organizations.getOrganizationMembershipList({
-        organizationId: props.organizationId,
+      const res = await clientFor(app).organizations.getOrganizationMembershipList({
+        organizationId: orgId,
         query: query || undefined,
         limit,
         offset,
       });
       return { data: res.data, hasMore: computeHasMore(offset, res.data.length, res.totalCount) };
     },
-    [searchText],
+    [organizationId, searchText],
     { onError: showClerkError },
   );
 
@@ -99,13 +139,9 @@ export function OrgMembers(props: { app: ClerkApp; organizationId: string; orgNa
     if (!ok) return;
     const toast = await showToast({ style: Toast.Style.Animated, title: "Removing member" });
     try {
-      await mutate(
-        clientFor(props.app).organizations.deleteOrganizationMembership({
-          organizationId: props.organizationId,
-          userId,
-        }),
-        { optimisticUpdate: (list) => list.filter((x) => x.id !== m.id) },
-      );
+      await mutate(clientFor(app).organizations.deleteOrganizationMembership({ organizationId, userId }), {
+        optimisticUpdate: (list) => list.filter((x) => x.id !== m.id),
+      });
       toast.style = Toast.Style.Success;
       toast.title = "Member removed";
     } catch (error) {
@@ -114,15 +150,42 @@ export function OrgMembers(props: { app: ClerkApp; organizationId: string; orgNa
     }
   }
 
+  const orgActions = (
+    <ActionPanel.Section title="Organization">
+      <Action.Push
+        title="Edit Organization"
+        icon={Icon.Pencil}
+        shortcut={{ modifiers: ["cmd"], key: "e" }}
+        target={<EditOrgForm app={app} organizationId={organizationId} onSaved={() => revalidateOrg()} />}
+      />
+      <Action.Push
+        title="View Invitations"
+        icon={Icon.Envelope}
+        target={<OrgInvitations app={app} organizationId={organizationId} orgName={orgName} />}
+      />
+      <Action
+        title="Toggle Org Info"
+        icon={Icon.Sidebar}
+        shortcut={{ modifiers: ["cmd"], key: "i" }}
+        onAction={() => setShowingDetail((v) => !v)}
+      />
+      <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardOrgUrl(organizationId)} />
+      <Action.CopyToClipboard title="Copy Org ID" content={organizationId} />
+      {org?.slug && <Action.CopyToClipboard title="Copy Slug" content={org.slug} />}
+    </ActionPanel.Section>
+  );
+
   return (
     <List
       isLoading={isLoading}
       pagination={pagination}
+      isShowingDetail={showingDetail}
       onSearchTextChange={setSearchText}
       throttle
-      navigationTitle={`Members · ${props.orgName}`}
+      navigationTitle={`Organization · ${orgName}`}
       searchBarPlaceholder="Search members…"
     >
+      <List.EmptyView icon={Icon.PersonLines} title="No members" actions={<ActionPanel>{orgActions}</ActionPanel>} />
       {(data ?? []).map((m) => {
         const userId = m.publicUserData?.userId;
         return (
@@ -132,13 +195,14 @@ export function OrgMembers(props: { app: ClerkApp; organizationId: string; orgNa
             title={memberLabel(m)}
             subtitle={m.publicUserData?.identifier ?? undefined}
             accessories={[{ tag: m.role }]}
+            detail={<OrgInfoPane org={org} />}
             actions={
               <ActionPanel>
                 {userId && (
                   <Action.Push
                     title="View User Details"
                     icon={Icon.Sidebar}
-                    target={<UserDetail app={props.app} userId={userId} />}
+                    target={<UserDetail app={app} userId={userId} />}
                   />
                 )}
                 {userId && (
@@ -147,8 +211,8 @@ export function OrgMembers(props: { app: ClerkApp; organizationId: string; orgNa
                     icon={Icon.Pencil}
                     target={
                       <ChangeRoleForm
-                        app={props.app}
-                        organizationId={props.organizationId}
+                        app={app}
+                        organizationId={organizationId}
                         userId={userId}
                         current={m.role}
                         onDone={() => mutate()}
@@ -162,18 +226,7 @@ export function OrgMembers(props: { app: ClerkApp; organizationId: string; orgNa
                   style={Action.Style.Destructive}
                   onAction={() => removeMember(m)}
                 />
-                <Action.Push
-                  title="Edit Organization"
-                  icon={Icon.Pencil}
-                  target={
-                    <EditOrgForm app={props.app} organizationId={props.organizationId} onSaved={() => mutate()} />
-                  }
-                />
-                <Action.OpenInBrowser
-                  title="Open Organization in Clerk Dashboard"
-                  icon={Icon.Globe}
-                  url={dashboardOrgUrl(props.organizationId)}
-                />
+                {orgActions}
               </ActionPanel>
             }
           />

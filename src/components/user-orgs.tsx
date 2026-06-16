@@ -3,7 +3,7 @@ import { useCachedPromise } from "@raycast/utils";
 import type { ClerkApp } from "../types";
 import { clientFor } from "../lib/clerk";
 import { showClerkError } from "../lib/errors";
-import { OrgMembers } from "./org-members";
+import { OrgDetail } from "./org-detail";
 
 export function UserOrgs(props: { app: ClerkApp; userId: string; userLabel: string }) {
   const { data, isLoading } = useCachedPromise(
@@ -27,9 +27,9 @@ export function UserOrgs(props: { app: ClerkApp; userId: string; userLabel: stri
           actions={
             <ActionPanel>
               <Action.Push
-                title="View Members"
+                title="Open Organization"
                 icon={Icon.PersonLines}
-                target={<OrgMembers app={props.app} organizationId={m.organization.id} orgName={m.organization.name} />}
+                target={<OrgDetail app={props.app} organizationId={m.organization.id} orgName={m.organization.name} />}
               />
             </ActionPanel>
           }
