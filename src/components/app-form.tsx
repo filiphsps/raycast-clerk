@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Clipboard, Form, Toast, showToast, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Clipboard, Form, Icon, Toast, showToast, useNavigation } from "@raycast/api";
 import { randomUUID } from "node:crypto";
 import { useEffect, useState } from "react";
 import type { ClerkApp } from "../types";
@@ -75,7 +75,7 @@ export function AppForm(props: { app?: ClerkApp; onSaved?: () => void }) {
         <ActionPanel>
           <Action.SubmitForm title={editing ? "Save App" : "Add App"} onSubmit={submit} />
           <Action.OpenInBrowser title="Open Clerk Dashboard → API Keys" url={DASHBOARD_API_KEYS_URL} />
-          <Action title="Paste Secret Key from Clipboard" onAction={pasteFromClipboard} />
+          <Action title="Paste Secret Key from Clipboard" icon={Icon.Clipboard} onAction={pasteFromClipboard} />
         </ActionPanel>
       }
     >

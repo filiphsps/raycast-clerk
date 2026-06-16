@@ -65,7 +65,6 @@ function IdentifierList({ app, accessory }: { app: ClerkApp; accessory?: List.Pr
     <List
       isLoading={isLoading}
       pagination={pagination}
-      navigationTitle={listType === "allowlist" ? "Allowlist" : "Blocklist"}
       searchBarPlaceholder={`Filter ${listType}…`}
       searchBarAccessory={accessory}
     >
