@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { isClerkSecretKey, instanceTypeFromKey, defaultAppName, DASHBOARD_API_KEYS_URL } from "./clerk";
+import {
+  isClerkSecretKey,
+  instanceTypeFromKey,
+  defaultAppName,
+  DASHBOARD_API_KEYS_URL,
+  dashboardUserUrl,
+  dashboardOrgUrl,
+} from "./clerk";
 
 describe("isClerkSecretKey", () => {
   it("accepts test and live keys, trimming whitespace", () => {
@@ -30,5 +37,14 @@ describe("defaultAppName", () => {
 describe("DASHBOARD_API_KEYS_URL", () => {
   it("points at the Clerk dashboard API keys deep link", () => {
     expect(DASHBOARD_API_KEYS_URL).toBe("https://dashboard.clerk.com/last-active?path=api-keys");
+  });
+});
+
+describe("dashboard deep links", () => {
+  it("builds a user URL", () => {
+    expect(dashboardUserUrl("user_123")).toBe("https://dashboard.clerk.com/~/users/user_123");
+  });
+  it("builds an organization URL", () => {
+    expect(dashboardOrgUrl("org_123")).toBe("https://dashboard.clerk.com/~/organizations/org_123");
   });
 });

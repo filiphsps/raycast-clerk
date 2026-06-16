@@ -1,7 +1,16 @@
 import { createClerkClient, type ClerkClient } from "@clerk/backend";
 import type { ClerkApp, InstanceType } from "../types";
 
+export const DASHBOARD_BASE = "https://dashboard.clerk.com";
 export const DASHBOARD_API_KEYS_URL = "https://dashboard.clerk.com/last-active?path=api-keys";
+
+export function dashboardUserUrl(userId: string): string {
+  return `${DASHBOARD_BASE}/~/users/${userId}`;
+}
+
+export function dashboardOrgUrl(orgId: string): string {
+  return `${DASHBOARD_BASE}/~/organizations/${orgId}`;
+}
 
 const SECRET_KEY_RE = /^sk_(test|live)_[A-Za-z0-9]+$/;
 
