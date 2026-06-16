@@ -25,6 +25,12 @@
       "title": "Manage Apps",
       "description": "Add, edit, remove, and activate Clerk instances",
       "mode": "view"
+    },
+    {
+      "name": "switch-app",
+      "title": "Switch Active App",
+      "description": "Switch which configured Clerk instance is active",
+      "mode": "view"
     }
   ],
   "dependencies": {
