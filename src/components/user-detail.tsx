@@ -1,9 +1,10 @@
-import { Action, ActionPanel, Color, Detail, Icon, List } from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import type { ClerkApp } from "../types";
 import { clientFor, dashboardUserUrl } from "../lib/clerk";
 import { showClerkError } from "../lib/errors";
 import { primaryEmail, fullName } from "../lib/user";
+import { FieldDetailList, hasEntries, type DetailField } from "./field-detail";
 import { EditUserForm } from "./user-edit-form";
 import { AddEmailForm } from "./add-email-form";
 import { SignInTokenForm } from "./sign-in-token-form";
@@ -37,6 +38,7 @@ export function UserSessions(props: { app: ClerkApp; userId: string }) {
           accessories={[{ tag: s.status }, { date: new Date(s.lastActiveAt) }]}
           actions={
             <ActionPanel>
+              <Action.CopyToClipboard title="Copy Session ID" content={s.id} />
               <Action
                 title="Revoke Session"
                 style={Action.Style.Destructive}
@@ -60,70 +62,81 @@ export function UserDetail(props: { app: ClerkApp; userId: string }) {
     onError: showClerkError,
   });
 
-  const md = user ? `# ${fullName(user)}\n\n${user.imageUrl ? `![avatar](${user.imageUrl})` : ""}` : "Loading…";
+  const fields: DetailField[] = [];
+  if (user) {
+    fields.push({ id: "id", label: "User ID", value: user.id, icon: Icon.Fingerprint });
+    const email = primaryEmail(user);
+    if (email !== "—") fields.push({ id: "email", label: "Email", value: email, icon: Icon.Envelope });
+    if (user.username) fields.push({ id: "username", label: "Username", value: user.username, icon: Icon.AtSymbol });
+    if (hasEntries(user.publicMetadata))
+      fields.push({
+        id: "public",
+        label: "Public Metadata",
+        value: JSON.stringify(user.publicMetadata),
+        icon: Icon.Code,
+      });
+    if (hasEntries(user.privateMetadata))
+      fields.push({
+        id: "private",
+        label: "Private Metadata",
+        value: JSON.stringify(user.privateMetadata),
+        icon: Icon.Lock,
+      });
+  }
+
+  const markdown = user ? `# ${fullName(user)}\n\n${user.imageUrl ? `![avatar](${user.imageUrl})` : ""}` : "Loading…";
+
+  const metadata = user && (
+    <>
+      <List.Item.Detail.Metadata.Label title="Name" text={fullName(user)} />
+      <List.Item.Detail.Metadata.TagList title="Status">
+        <List.Item.Detail.Metadata.TagList.Item
+          text={user.banned ? "Banned" : "Active"}
+          color={user.banned ? Color.Red : Color.Green}
+        />
+        {user.twoFactorEnabled && <List.Item.Detail.Metadata.TagList.Item text="2FA" color={Color.Blue} />}
+      </List.Item.Detail.Metadata.TagList>
+      <List.Item.Detail.Metadata.Label title="Created" text={fmtDate(user.createdAt)} />
+      <List.Item.Detail.Metadata.Label title="Last Sign-In" text={fmtDate(user.lastSignInAt)} />
+    </>
+  );
+
+  const actions = user && (
+    <ActionPanel.Section title="User">
+      <Action.Push
+        title="Edit User"
+        icon={Icon.Pencil}
+        shortcut={{ modifiers: ["cmd"], key: "e" }}
+        target={<EditUserForm app={props.app} user={user} onSaved={revalidate} />}
+      />
+      <Action.Push
+        title="Add Email Address"
+        icon={Icon.Envelope}
+        target={<AddEmailForm app={props.app} userId={user.id} onAdded={revalidate} />}
+      />
+      <Action.Push title="View Sessions" icon={Icon.Globe} target={<UserSessions app={props.app} userId={user.id} />} />
+      <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardUserUrl(user.id)} />
+      <Action.Push
+        title="Generate Sign-In Token"
+        icon={Icon.Key}
+        target={<SignInTokenForm app={props.app} userId={user.id} />}
+      />
+      <Action.Push
+        title="Generate Impersonation Token"
+        icon={Icon.TwoPeople}
+        target={<ImpersonationTokenForm app={props.app} userId={user.id} />}
+      />
+    </ActionPanel.Section>
+  );
 
   return (
-    <Detail
+    <FieldDetailList
       isLoading={isLoading}
-      markdown={md}
       navigationTitle={user ? fullName(user) : "User"}
-      metadata={
-        user && (
-          <Detail.Metadata>
-            <Detail.Metadata.Label title="User ID" text={user.id} />
-            <Detail.Metadata.Label title="Email" text={primaryEmail(user)} />
-            <Detail.Metadata.Label title="Username" text={user.username ?? "—"} />
-            <Detail.Metadata.TagList title="Status">
-              <Detail.Metadata.TagList.Item
-                text={user.banned ? "Banned" : "Active"}
-                color={user.banned ? Color.Red : Color.Green}
-              />
-              {user.twoFactorEnabled && <Detail.Metadata.TagList.Item text="2FA" color={Color.Blue} />}
-            </Detail.Metadata.TagList>
-            <Detail.Metadata.Label title="Created" text={fmtDate(user.createdAt)} />
-            <Detail.Metadata.Label title="Last sign-in" text={fmtDate(user.lastSignInAt)} />
-            <Detail.Metadata.Separator />
-            <Detail.Metadata.Label title="Public metadata" text={JSON.stringify(user.publicMetadata)} />
-            <Detail.Metadata.Label title="Private metadata" text={JSON.stringify(user.privateMetadata)} />
-          </Detail.Metadata>
-        )
-      }
-      actions={
-        user && (
-          <ActionPanel>
-            <Action.Push
-              title="Edit User"
-              icon={Icon.Pencil}
-              target={<EditUserForm app={props.app} user={user} onSaved={revalidate} />}
-            />
-            <Action.Push
-              title="Add Email Address"
-              icon={Icon.Envelope}
-              target={<AddEmailForm app={props.app} userId={user.id} onAdded={revalidate} />}
-            />
-            <Action.Push
-              title="View Sessions"
-              icon={Icon.Globe}
-              target={<UserSessions app={props.app} userId={user.id} />}
-            />
-            <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardUserUrl(user.id)} />
-            <Action.CopyToClipboard title="Copy User ID" content={user.id} />
-            <Action.CopyToClipboard title="Copy Email" content={primaryEmail(user)} />
-            <ActionPanel.Section title="Support">
-              <Action.Push
-                title="Generate Sign-In Token"
-                icon={Icon.Key}
-                target={<SignInTokenForm app={props.app} userId={user.id} />}
-              />
-              <Action.Push
-                title="Generate Impersonation Token"
-                icon={Icon.TwoPeople}
-                target={<ImpersonationTokenForm app={props.app} userId={user.id} />}
-              />
-            </ActionPanel.Section>
-          </ActionPanel>
-        )
-      }
+      fields={fields}
+      markdown={markdown}
+      metadata={metadata}
+      actions={actions}
     />
   );
 }

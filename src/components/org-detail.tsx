@@ -12,7 +12,7 @@ import {
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { useState } from "react";
-import type { Organization, OrganizationMembership } from "@clerk/backend";
+import type { OrganizationMembership } from "@clerk/backend";
 import type { ClerkApp } from "../types";
 import { clientFor, dashboardOrgUrl } from "../lib/clerk";
 import { EditOrgForm } from "./org-edit-form";
@@ -21,6 +21,7 @@ import { getPageParams, computeHasMore } from "../lib/pagination";
 import { PAGE_SIZE } from "../lib/hooks";
 import { showClerkError } from "../lib/errors";
 import { UserDetail } from "./user-detail";
+import { FieldDetailList, hasEntries, type DetailField } from "./field-detail";
 
 function memberLabel(m: OrganizationMembership): string {
   const d = m.publicUserData;
@@ -72,47 +73,8 @@ function ChangeRoleForm(props: {
   );
 }
 
-function OrgInfoPane({ org }: { org?: Organization }) {
-  if (!org) return <List.Item.Detail isLoading />;
-  return (
-    <List.Item.Detail
-      metadata={
-        <List.Item.Detail.Metadata>
-          <List.Item.Detail.Metadata.Label title="Name" text={org.name} />
-          <List.Item.Detail.Metadata.Label title="Slug" text={org.slug ?? "—"} />
-          <List.Item.Detail.Metadata.Label
-            title="Members"
-            text={typeof org.membersCount === "number" ? String(org.membersCount) : "—"}
-          />
-          <List.Item.Detail.Metadata.Label title="Org ID" text={org.id} />
-          <List.Item.Detail.Metadata.Label title="Created" text={new Date(org.createdAt).toLocaleString()} />
-          <List.Item.Detail.Metadata.Separator />
-          <List.Item.Detail.Metadata.Label title="Public Metadata" text={JSON.stringify(org.publicMetadata)} />
-          <List.Item.Detail.Metadata.Label title="Private Metadata" text={JSON.stringify(org.privateMetadata)} />
-        </List.Item.Detail.Metadata>
-      }
-    />
-  );
-}
-
-export function OrgDetail({
-  app,
-  organizationId,
-  orgName,
-}: {
-  app: ClerkApp;
-  organizationId: string;
-  orgName: string;
-}) {
+function OrgMembers({ app, organizationId, orgName }: { app: ClerkApp; organizationId: string; orgName: string }) {
   const [searchText, setSearchText] = useState("");
-  const [showingDetail, setShowingDetail] = useState(true);
-
-  const { data: org, revalidate: revalidateOrg } = useCachedPromise(
-    (id: string) => clientFor(app).organizations.getOrganization({ organizationId: id }),
-    [organizationId],
-    { onError: showClerkError },
-  );
-
   const { data, isLoading, pagination, mutate } = useCachedPromise(
     (orgId: string, query: string) => async (options: { page: number }) => {
       const { limit, offset } = getPageParams(options.page, PAGE_SIZE);
@@ -150,54 +112,15 @@ export function OrgDetail({
     }
   }
 
-  const editOrgAction = (
-    <Action.Push
-      title="Edit Organization"
-      icon={Icon.Pencil}
-      shortcut={{ modifiers: ["cmd"], key: "e" }}
-      target={<EditOrgForm app={app} organizationId={organizationId} onSaved={() => revalidateOrg()} />}
-    />
-  );
-
-  const orgActions = (
-    <ActionPanel.Section title="Organization">
-      <Action.Push
-        title="View Invitations"
-        icon={Icon.Envelope}
-        target={<OrgInvitations app={app} organizationId={organizationId} orgName={orgName} />}
-      />
-      <Action
-        title="Toggle Org Info"
-        icon={Icon.Sidebar}
-        shortcut={{ modifiers: ["cmd"], key: "i" }}
-        onAction={() => setShowingDetail((v) => !v)}
-      />
-      <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardOrgUrl(organizationId)} />
-      <Action.CopyToClipboard title="Copy Org ID" content={organizationId} />
-      {org?.slug && <Action.CopyToClipboard title="Copy Slug" content={org.slug} />}
-    </ActionPanel.Section>
-  );
-
   return (
     <List
       isLoading={isLoading}
       pagination={pagination}
-      isShowingDetail={showingDetail}
       onSearchTextChange={setSearchText}
       throttle
-      navigationTitle={`Organization · ${orgName}`}
+      navigationTitle={`Members · ${orgName}`}
       searchBarPlaceholder="Search members…"
     >
-      <List.EmptyView
-        icon={Icon.PersonLines}
-        title="No members"
-        actions={
-          <ActionPanel>
-            {editOrgAction}
-            {orgActions}
-          </ActionPanel>
-        }
-      />
       {(data ?? []).map((m) => {
         const userId = m.publicUserData?.userId;
         return (
@@ -207,7 +130,6 @@ export function OrgDetail({
             title={memberLabel(m)}
             subtitle={m.publicUserData?.identifier ?? undefined}
             accessories={[{ tag: m.role }]}
-            detail={<OrgInfoPane org={org} />}
             actions={
               <ActionPanel>
                 {userId && (
@@ -238,13 +160,97 @@ export function OrgDetail({
                   style={Action.Style.Destructive}
                   onAction={() => removeMember(m)}
                 />
-                {editOrgAction}
-                {orgActions}
               </ActionPanel>
             }
           />
         );
       })}
     </List>
+  );
+}
+
+export function OrgDetail({
+  app,
+  organizationId,
+  orgName,
+}: {
+  app: ClerkApp;
+  organizationId: string;
+  orgName: string;
+}) {
+  const {
+    data: org,
+    isLoading,
+    revalidate: revalidateOrg,
+  } = useCachedPromise(
+    (id: string) => clientFor(app).organizations.getOrganization({ organizationId: id }),
+    [organizationId],
+    { onError: showClerkError },
+  );
+
+  const fields: DetailField[] = [];
+  if (org) {
+    fields.push({ id: "id", label: "Org ID", value: org.id, icon: Icon.Fingerprint });
+    if (org.slug) fields.push({ id: "slug", label: "Slug", value: org.slug, icon: Icon.Link });
+    if (hasEntries(org.publicMetadata))
+      fields.push({
+        id: "public",
+        label: "Public Metadata",
+        value: JSON.stringify(org.publicMetadata),
+        icon: Icon.Code,
+      });
+    if (hasEntries(org.privateMetadata))
+      fields.push({
+        id: "private",
+        label: "Private Metadata",
+        value: JSON.stringify(org.privateMetadata),
+        icon: Icon.Lock,
+      });
+  }
+
+  const markdown = org ? `# ${org.name}\n\n${org.imageUrl ? `![logo](${org.imageUrl})` : ""}` : "Loading…";
+
+  const metadata = org && (
+    <>
+      <List.Item.Detail.Metadata.Label title="Name" text={org.name} />
+      <List.Item.Detail.Metadata.Label
+        title="Members"
+        text={typeof org.membersCount === "number" ? String(org.membersCount) : "—"}
+      />
+      <List.Item.Detail.Metadata.Label title="Created" text={new Date(org.createdAt).toLocaleString()} />
+    </>
+  );
+
+  const actions = org && (
+    <ActionPanel.Section title="Organization">
+      <Action.Push
+        title="Edit Organization"
+        icon={Icon.Pencil}
+        shortcut={{ modifiers: ["cmd"], key: "e" }}
+        target={<EditOrgForm app={app} organizationId={organizationId} onSaved={() => revalidateOrg()} />}
+      />
+      <Action.Push
+        title="View Members"
+        icon={Icon.PersonLines}
+        target={<OrgMembers app={app} organizationId={organizationId} orgName={orgName} />}
+      />
+      <Action.Push
+        title="View Invitations"
+        icon={Icon.Envelope}
+        target={<OrgInvitations app={app} organizationId={organizationId} orgName={orgName} />}
+      />
+      <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardOrgUrl(organizationId)} />
+    </ActionPanel.Section>
+  );
+
+  return (
+    <FieldDetailList
+      isLoading={isLoading}
+      navigationTitle={`Organization · ${orgName}`}
+      fields={fields}
+      markdown={markdown}
+      metadata={metadata}
+      actions={actions}
+    />
   );
 }
