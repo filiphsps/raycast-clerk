@@ -10,6 +10,8 @@ import { CreateUserForm } from "./components/user-create-form";
 import { EditUserForm } from "./components/user-edit-form";
 import { UserDetail } from "./components/user-detail";
 import { UserOrgs } from "./components/user-orgs";
+import { SignInTokenForm } from "./components/sign-in-token-form";
+import { ImpersonationTokenForm } from "./components/impersonation-token-form";
 import { clientFor, dashboardUserUrl } from "./lib/clerk";
 import { getPageParams, computeHasMore } from "./lib/pagination";
 import { showClerkError } from "./lib/errors";
@@ -147,6 +149,18 @@ function UsersList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["
               <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardUserUrl(user.id)} />
               <Action.CopyToClipboard title="Copy User ID" content={user.id} />
               <Action.CopyToClipboard title="Copy Email" content={primaryEmail(user)} />
+              <ActionPanel.Section title="Support">
+                <Action.Push
+                  title="Generate Sign-In Token"
+                  icon={Icon.Key}
+                  target={<SignInTokenForm app={app} userId={user.id} />}
+                />
+                <Action.Push
+                  title="Generate Impersonation Token"
+                  icon={Icon.TwoPeople}
+                  target={<ImpersonationTokenForm app={app} userId={user.id} />}
+                />
+              </ActionPanel.Section>
             </ActionPanel>
           }
         />

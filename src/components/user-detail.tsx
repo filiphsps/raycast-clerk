@@ -6,6 +6,8 @@ import { clientFor, dashboardUserUrl } from "../lib/clerk";
 import { showClerkError } from "../lib/errors";
 import { EditUserForm } from "./user-edit-form";
 import { AddEmailForm } from "./add-email-form";
+import { SignInTokenForm } from "./sign-in-token-form";
+import { ImpersonationTokenForm } from "./impersonation-token-form";
 
 function primaryEmail(user: User): string {
   return (
@@ -119,6 +121,18 @@ export function UserDetail(props: { app: ClerkApp; userId: string }) {
             <Action.OpenInBrowser title="Open in Clerk Dashboard" icon={Icon.Globe} url={dashboardUserUrl(user.id)} />
             <Action.CopyToClipboard title="Copy User ID" content={user.id} />
             <Action.CopyToClipboard title="Copy Email" content={primaryEmail(user)} />
+            <ActionPanel.Section title="Support">
+              <Action.Push
+                title="Generate Sign-In Token"
+                icon={Icon.Key}
+                target={<SignInTokenForm app={props.app} userId={user.id} />}
+              />
+              <Action.Push
+                title="Generate Impersonation Token"
+                icon={Icon.TwoPeople}
+                target={<ImpersonationTokenForm app={props.app} userId={user.id} />}
+              />
+            </ActionPanel.Section>
           </ActionPanel>
         )
       }
