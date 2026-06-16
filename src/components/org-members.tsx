@@ -15,6 +15,7 @@ import { useState } from "react";
 import type { OrganizationMembership } from "@clerk/backend";
 import type { ClerkApp } from "../types";
 import { clientFor, dashboardOrgUrl } from "../lib/clerk";
+import { EditOrgForm } from "./org-edit-form";
 import { getPageParams, computeHasMore } from "../lib/pagination";
 import { PAGE_SIZE } from "../lib/hooks";
 import { showClerkError } from "../lib/errors";
@@ -160,6 +161,13 @@ export function OrgMembers(props: { app: ClerkApp; organizationId: string; orgNa
                   icon={Icon.Trash}
                   style={Action.Style.Destructive}
                   onAction={() => removeMember(m)}
+                />
+                <Action.Push
+                  title="Edit Organization"
+                  icon={Icon.Pencil}
+                  target={
+                    <EditOrgForm app={props.app} organizationId={props.organizationId} onSaved={() => mutate()} />
+                  }
                 />
                 <Action.OpenInBrowser
                   title="Open Organization in Clerk Dashboard"

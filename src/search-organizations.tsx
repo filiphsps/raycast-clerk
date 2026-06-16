@@ -18,6 +18,7 @@ import { getActiveAppId, setActiveAppId } from "./lib/storage";
 import { AuthGuard } from "./components/auth-guard";
 import { AppDropdown } from "./components/app-dropdown";
 import { OrgMembers } from "./components/org-members";
+import { EditOrgForm } from "./components/org-edit-form";
 import { clientFor, dashboardOrgUrl } from "./lib/clerk";
 import { getPageParams, computeHasMore } from "./lib/pagination";
 import { showClerkError } from "./lib/errors";
@@ -134,6 +135,12 @@ function OrgsList({ app, accessory }: { app: ClerkApp; accessory?: List.Props["s
                 title="View Members"
                 icon={Icon.PersonLines}
                 target={<OrgMembers app={app} organizationId={org.id} orgName={org.name} />}
+              />
+              <Action.Push
+                title="Edit Organization"
+                icon={Icon.Pencil}
+                shortcut={{ modifiers: ["cmd"], key: "e" }}
+                target={<EditOrgForm app={app} organizationId={org.id} onSaved={() => mutate()} />}
               />
               <Action.Push
                 title="Create Organization"
