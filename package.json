@@ -43,6 +43,12 @@
       "title": "Clerk Menu Bar",
       "description": "Show the active Clerk app and switch instances from the menu bar",
       "mode": "menu-bar"
+    },
+    {
+      "name": "invitations",
+      "title": "Invitations",
+      "description": "View and manage invitations in the active Clerk instance",
+      "mode": "view"
     }
   ],
   "dependencies": {
