@@ -54,11 +54,11 @@ export function hasEntries(obj: unknown): boolean {
 }
 
 /**
- * Cap how large Raycast renders a markdown image. Raycast honors the
- * `raycast-width` / `raycast-height` query params, so the avatar/logo stays
- * small and the detail pane never needs to scroll.
+ * Cap how large Raycast renders a markdown image. Setting only `raycast-width`
+ * keeps the avatar/logo small and lets the height scale to the image's real
+ * aspect ratio — avoiding the letterbox padding a fixed square box adds.
  */
-export function sizedImage(url: string, size = 128): string {
+export function sizedImage(url: string, width = 128): string {
   const sep = url.includes("?") ? "&" : "?";
-  return `${url}${sep}raycast-width=${size}&raycast-height=${size}`;
+  return `${url}${sep}raycast-width=${width}`;
 }
