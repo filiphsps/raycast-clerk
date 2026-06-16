@@ -55,6 +55,12 @@
       "title": "Access Lists",
       "description": "Manage allowlist and blocklist identifiers in the active Clerk instance",
       "mode": "view"
+    },
+    {
+      "name": "overview",
+      "title": "Overview",
+      "description": "User and organization counts across configured Clerk instances",
+      "mode": "view"
     }
   ],
   "dependencies": {
